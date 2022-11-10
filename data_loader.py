@@ -2,10 +2,13 @@ import os
 import torch
 import pickle  
 import numpy as np
+#import pdb
 
 from functools import partial
 from numpy.random import uniform
 from multiprocessing import Process, Manager  
+import torch.multiprocessing
+torch.multiprocessing.set_sharing_strategy('file_system')
 
 from torch.utils import data
 from torch.utils.data.sampler import Sampler
@@ -22,10 +25,12 @@ class Utterances(data.Dataset):
         self.step = 20
         self.split = 0
         
+        print("vor pkl load")
         metaname = os.path.join(self.root_dir, "train.pkl")
         meta = pickle.load(open(metaname, "rb"))
-        
-        manager = Manager()
+        print("nach pkl load")
+
+        manager = Manager()       
         meta = manager.list(meta)
         dataset = manager.list(len(meta)*[None])  # <-- can be shared between processes.
         processes = []
@@ -69,9 +74,11 @@ class Utterances(data.Dataset):
                 f0_tmp = f0_tmp[:self.split]
             else:
                 raise ValueError
-            uttrs[2] = ( sp_tmp, f0_tmp )
-            dataset[idx_offset+k] = uttrs
-            
+            try:
+                uttrs[2] = ( sp_tmp, f0_tmp )
+                dataset[idx_offset+k] = uttrs
+            except Exception as e:
+                print(e)
                    
         
     def __getitem__(self, index):
@@ -105,7 +112,7 @@ class MyCollator(object):
             aa, b, c = token
             len_crop = np.random.randint(self.min_len_seq, self.max_len_seq+1, size=2) # 1.5s ~ 3s
             left = np.random.randint(0, len(aa)-len_crop[0], size=2)
-            pdb.set_trace()
+            #pdb.set_trace()
             
             a = aa[left[0]:left[0]+len_crop[0], :]
             c = c[left[0]:left[0]+len_crop[0]]
