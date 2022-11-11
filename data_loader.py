@@ -8,7 +8,8 @@ from functools import partial
 from numpy.random import uniform
 from multiprocessing import Process, Manager  
 import torch.multiprocessing
-torch.multiprocessing.set_sharing_strategy('file_system')
+sharing_strategy = "file_system"
+torch.multiprocessing.set_sharing_strategy(sharing_strategy)
 
 from torch.utils import data
 from torch.utils.data.sampler import Sampler
@@ -169,7 +170,9 @@ def get_loader(hparams):
     
     sampler = MultiSampler(len(dataset), hparams.samplier, shuffle=hparams.shuffle)
     
-    worker_init_fn = lambda x: np.random.seed((torch.initial_seed()) % (2**32))
+    worker_init_fn = lambda worker_id: torch.multiprocessing.set_sharing_strategy(sharing_strategy) 
+
+    #worker_init_fn = lambda x: np.random.seed((torch.initial_seed()) % (2**32))
     
     data_loader = data.DataLoader(dataset=dataset,
                                   batch_size=hparams.batch_size,
