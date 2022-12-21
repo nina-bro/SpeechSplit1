@@ -148,6 +148,7 @@ class Solver(object):
             emb_org = emb_org.to(self.device)
             len_org = len_org.to(self.device)
             f0_org = f0_org.to(self.device)
+        
             
                     
             # =================================================================================== #
@@ -207,12 +208,16 @@ class Solver(object):
                 self.G = self.G.eval()
                 with torch.no_grad():
                     loss_val = []
-                    for val_sub in validation_pt:
+                    #select 50 randomly chosen validation files
+                    indices = np.random.randint(0, len(validation_pt), 25)
+                    validation_set = [validation_pt[i] for i in indices]
+                    for val_sub in validation_set:
+                        print("new val_sub")
                         emb_org_val = torch.from_numpy(val_sub[1]).to(self.device)         
                         for k in range(2, 3):
-                            x_real_pad, _ = pad_seq_to_2(val_sub[k][0][np.newaxis,:,:], 192)
+                            x_real_pad, _ = pad_seq_to_2(val_sub[k][0][np.newaxis,:,:], 2048)
                             len_org = torch.tensor([val_sub[k][2]]).to(self.device) 
-                            f0_org = np.pad(val_sub[k][1], (0, 192-val_sub[k][2]), 'constant', constant_values=(0, 0))
+                            f0_org = np.pad(val_sub[k][1], (0, 2048-val_sub[k][2]), 'constant', constant_values=(0, 0))
                             f0_quantized = quantize_f0_numpy(f0_org)[0]
                             f0_onehot = f0_quantized[np.newaxis, :, :]
                             f0_org_val = torch.from_numpy(f0_onehot).to(self.device) 
@@ -231,12 +236,12 @@ class Solver(object):
             if (i+1) % self.sample_step == 0:
                 self.G = self.G.eval()
                 with torch.no_grad():
-                    for val_sub in validation_pt:
+                    for val_sub in validation_set:#validation_pt:
                         emb_org_val = torch.from_numpy(val_sub[1]).to(self.device)         
                         for k in range(2, 3):
-                            x_real_pad, _ = pad_seq_to_2(val_sub[k][0][np.newaxis,:,:], 192)
+                            x_real_pad, _ = pad_seq_to_2(val_sub[k][0][np.newaxis,:,:], 2048)
                             len_org = torch.tensor([val_sub[k][2]]).to(self.device) 
-                            f0_org = np.pad(val_sub[k][1], (0, 192-val_sub[k][2]), 'constant', constant_values=(0, 0))
+                            f0_org = np.pad(val_sub[k][1], (0, 2048-val_sub[k][2]), 'constant', constant_values=(0, 0))
                             f0_quantized = quantize_f0_numpy(f0_org)[0]
                             f0_onehot = f0_quantized[np.newaxis, :, :]
                             f0_org_val = torch.from_numpy(f0_onehot).to(self.device) 

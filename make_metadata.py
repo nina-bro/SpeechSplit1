@@ -9,7 +9,7 @@ print('Found directory: %s' % dirName)
 
 trainSpeakers = []
 valSpeakers = []
-numSpeakers = 9810
+numSpeakers = 5481 #9810
 #maxMelLength = 0
 onehot = 0
 
@@ -18,7 +18,7 @@ for speaker in sorted(subdirList):
     id = int(speaker.split('P')[1])
     _, _, fileList = next(os.walk(os.path.join(dirName, speaker)))
     for fileName in sorted(fileList):
-        if id <= 8400:
+        if id < 4716:
             trainUtterances = []
             trainUtterances.append(speaker)
             #spk embedding (one hot)
@@ -27,7 +27,8 @@ for speaker in sorted(subdirList):
             trainUtterances.append(spkid)
             trainUtterances.append(os.path.join(speaker,fileName))
             trainSpeakers.append(trainUtterances)
-        if id >= 8401:
+        if id >= 4716: 
+        #id >= 8401:
             #speaker (folder name)
             valStructure = []
             valStructure.append(speaker)
@@ -61,5 +62,5 @@ print(len(trainSpeakers))
 print(len(valSpeakers))
 with open(os.path.join(rootDir, 'train.pkl'), 'wb') as handle:
     pickle.dump(trainSpeakers, handle)
-with open(os.path.join(rootDir[:-6], 'val.pkl'), 'wb') as handle:
+with open(os.path.join(rootDir[:-6], 'spmel/val.pkl'), 'wb') as handle:
     pickle.dump(valSpeakers, handle)

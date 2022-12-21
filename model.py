@@ -306,11 +306,11 @@ class Generator_3(nn.Module):
         code_exp_2 = codes_2.repeat_interleave(self.freq_2, dim=1)
         
         encoder_outputs = torch.cat((code_exp_1, code_exp_2, code_exp_3, 
-                                     c_trg.unsqueeze(1).expand(-1,x_1.size(-1),-1)), dim=-1)
-        
+                                     c_trg.unsqueeze(1).expand(-1,x_1.size(-1),-1)), dim=-1).cuda()
+    #todo add this stuff for intelligibility assessment + cuda above    
         mel_outputs = self.decoder(encoder_outputs)
         
-        return mel_outputs
+        return mel_outputs, code_exp_1, code_exp_2, code_exp_3
     
     
     def rhythm(self, x_org):

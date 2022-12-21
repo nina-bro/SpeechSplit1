@@ -23,13 +23,14 @@ def main(config):
         os.makedirs(config.model_save_dir)
     if not os.path.exists(config.sample_dir):
         os.makedirs(config.sample_dir)
-
+    print("created directories")
     # Data loader.
     vcc_loader = get_loader(hparams)
+    print("called data loader")
     
     # Solver for training
     solver = Solver(vcc_loader, config, hparams)
-
+    print("created solver, startin trainin")
     solver.train()
     
         
@@ -54,7 +55,7 @@ if __name__ == '__main__':
     parser.add_argument('--sample_dir', type=str, default='run/samples')
 
     # Step size.
-    parser.add_argument('--log_step', type=int, default=10)
+    parser.add_argument('--log_step', type=int, default=1000)
     parser.add_argument('--sample_step', type=int, default=1000)
     parser.add_argument('--model_save_step', type=int, default=1000)
 

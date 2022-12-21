@@ -49,6 +49,12 @@ def quantize_f0_numpy(x, num_bins=256):
     x = x.astype(float).copy()
     uv = (x<=0)
     x[uv] = 0.0
+    #test
+    uv = (x >=1)
+    x[uv] = 1.0
+    uv = (np.isnan(x))
+    x[uv] = 0.0
+    #print(x)
     assert (x >= 0).all() and (x <= 1).all()
     x = np.round(x * (num_bins-1))
     x = x + 1
@@ -82,7 +88,18 @@ def get_mask_from_lengths(lengths, max_len):
     
     
 
-def pad_seq_to_2(x, len_out=128):
+def pad_seq_to_2(x,  len_out=1696): #len_out=128):
     len_pad = (len_out - x.shape[1])
+    #print(len_out)
+    #print(x.shape[1])
     assert len_pad >= 0
-    return np.pad(x, ((0,0),(0,len_pad),(0,0)), 'constant'), len_pad    
+    return np.pad(x, ((0,0),(0,len_pad),(0,0)), 'constant'), len_pad
+
+def pad_f0(f0, len_out=672):
+    length = f0.shape[0]
+    if length <= len_out:
+        len_pad = len_out - length
+        return np.pad(f0, (0, len_pad), 'constant', constant_values=(0,0))
+    else:
+        start = int(np.floor((length-len_out))/2)
+        return f0[start:start+len_out]

@@ -26,11 +26,9 @@ class Utterances(data.Dataset):
         self.step = 20
         self.split = 0
         
-        print("vor pkl load")
         metaname = os.path.join(self.root_dir, "train.pkl")
         meta = pickle.load(open(metaname, "rb"))
-        print("nach pkl load")
-
+        
         manager = Manager()       
         meta = manager.list(meta)
         dataset = manager.list(len(meta)*[None])  # <-- can be shared between processes.
@@ -112,8 +110,11 @@ class MyCollator(object):
         for token in batch:
             aa, b, c = token
             len_crop = np.random.randint(self.min_len_seq, self.max_len_seq+1, size=2) # 1.5s ~ 3s
+            #print(len(aa))
+            #print(len_crop[0])
             left = np.random.randint(0, len(aa)-len_crop[0], size=2)
             #pdb.set_trace()
+
             
             a = aa[left[0]:left[0]+len_crop[0], :]
             c = c[left[0]:left[0]+len_crop[0]]
@@ -170,9 +171,9 @@ def get_loader(hparams):
     
     sampler = MultiSampler(len(dataset), hparams.samplier, shuffle=hparams.shuffle)
     
-    worker_init_fn = lambda worker_id: torch.multiprocessing.set_sharing_strategy(sharing_strategy) 
+    #worker_init_fn = lambda worker_id: torch.multiprocessing.set_sharing_strategy(sharing_strategy) 
 
-    #worker_init_fn = lambda x: np.random.seed((torch.initial_seed()) % (2**32))
+    worker_init_fn = lambda x: np.random.seed((torch.initial_seed()) % (2**32))
     
     data_loader = data.DataLoader(dataset=dataset,
                                   batch_size=hparams.batch_size,

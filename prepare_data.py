@@ -4,6 +4,7 @@ import csv
 import shutil
 import pickle
 import json
+import wave
 
 target_dir = 'assets/wavs'
 source_dir = '/DATA/nina/CommonPhone/CP'
@@ -44,13 +45,13 @@ os.mkdir(target_dir)
 
 # id-counter, gives speakers an integer value
 id_ctr = 0
-id_ctr_val = 8401
+#id_ctr_val = 8401
 #metadata dict
 speakers = {}
 #speakers_val = {}
 
 # go through all language subfolders of target directory and extract files to source directory
-for lang in os.listdir(source_dir):
+for lang in ['en']:#os.listdir(source_dir):
     path_lang_subfolder = os.path.join(source_dir, lang)
 
     # read train.csv and dev.csv and create a dictionary that assigns ids to audio file names
@@ -80,35 +81,45 @@ for lang in os.listdir(source_dir):
                 path = os.path.join(target_dir, "P" + str(id_ctr))
             elif row[5] == "dev":
                 #print(id_ctr_val)
-                path = os.path.join(target_dir, "P" + str(id_ctr_val))
+                path = os.path.join(target_dir, "P" + str(id_ctr))
             if path != "":
                 # make directory for speaker
                 os.mkdir(path)
-                # copy all audio files for speaker to directory
+                # join all audio files for speaker in directory
+                outfile = os.path.join(path, str(id_ctr) +   '.wav')
+                data = []
                 for audiofile in speakers_audiofiles[row[0]]:
-                    shutil.copy(os.path.join(path_lang_subfolder, 'wav', audiofile), path)
+                    #shutil.copy(os.path.join(path_lang_subfolder, 'wav', audiofile), path)
+                    w = wave.open(os.path.join(path_lang_subfolder, 'wav', audiofile), 'rb')
+                    data.append( [w.getparams(), w.readframes(w.getnframes())])
+                    w.close()
                     #print(audiofile)
+                output = wave.open(outfile, 'wb')
+                output.setparams(data[0][0])
+                for i in range(len(data)):
+                    output.writeframes(data[i][1])
+                output.close()
                 #add speaker info to metadata dict
                 if row[1] == "male":
                     if row[5] == "train":
                         speakers["P" + str(id_ctr)] = "M"
                         id_ctr += 1
                     else:
-                        speakers["P" + str(id_ctr_val)] = "M"
-                        id_ctr_val += 1
+                        speakers["P" + str(id_ctr)] = "M"
+                        id_ctr += 1
                 else:
                     if row[5] == "train":
                         speakers["P" + str(id_ctr)] = "F"
                         id_ctr += 1
                     else:
-                        speakers["P" + str(id_ctr_val)] = "F"
-                        id_ctr_val += 1
+                        speakers["P" + str(id_ctr)] = "F"
+                        id_ctr += 1
 
 #print("length of speaker dict: " + str(len(speakers.keys())))
 
 #with open('validation.pkl', 'wb+') as handle:
 #    pickle.dump(speakers, handle)
-with open('spk2gen.pkl', 'wb+') as handle:
+with open('assets/spk2gen.pkl', 'wb+') as handle:
     pickle.dump(speakers, handle)
 
 with open('metadata.txt', 'w+') as metadata_file:
